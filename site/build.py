@@ -480,9 +480,11 @@ class Builder:
              "isPartOf": {"@id": self.abs("/#website")},
              "hasPart": [{"@id": self.abs(f"/{s}/{lang if lang in self.apps[s]['langs'] else self.apps[s]['primary_lang']}/#app")} for s in APP_ORDER]},
         ]}
+        verify = json.loads((SITE / "verification.json").read_text(encoding="utf-8"))
+        verify_tags = "\n".join(f'<meta name="{esc(k)}" content="{esc(v)}">' for k, v in verify.items() if v) if lang == "en" else ""
         head = self.head(lang=lang, title=copy[0], description=copy[1], path=path, alternates=alts, x_default="/",
                          icon_dir="/static/img/taskbit", og_image="/static/img/hub-og.jpg",
-                         og_alt=copy[0], jsonld=jsonld)
+                         og_alt=copy[0], jsonld=jsonld, extra=verify_tags)
         head = head.replace('href="/static/img/taskbit/favicon.png"', 'href="/static/img/hub-favicon.png"').replace(
             'href="/static/img/taskbit/apple-touch-icon.png"', 'href="/static/img/hub-favicon.png"')
         o = OTHER[lang]
