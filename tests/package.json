@@ -1,0 +1,11 @@
+{
+  "name": "official-sites-browser-tests",
+  "private": true,
+  "type": "module",
+  "description": "Local browser checks for the built site (not run in CI)",
+  "scripts": { "test": "node browser-test.mjs" },
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "playwright": "1.59.0"
+  }
+}

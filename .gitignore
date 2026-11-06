@@ -1,0 +1,7 @@
+dist/
+.DS_Store
+tests/node_modules/
+tests/screenshots/
+__pycache__/
+*.pyc
+docs/website/internal-notes.md
