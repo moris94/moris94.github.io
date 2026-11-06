@@ -95,22 +95,34 @@ cd tests && npm install && BASE=http://127.0.0.1:8765 npm test
 
 期待する効果と不確実性: 上記はAI検索がアプリを正しく理解し、引用できる状態を作るためのもので、特定のAI検索での掲載・推薦を保証しない。新しいサイトはインデックスされるまで時間がかかり、外部からのリンクも現時点ではApp Storeの登録URLを変えない限りほとんどない。
 
-## Search Console と Bing Webmaster Tools（手動設定が必要）
+## Search Console と Bing Webmaster Tools
 
-未実施。Googleアカウントでの所有権確認が必要で、この作業環境から代行できる認証情報はない。
+### 登録状況（2026-11-06）
+
+| 項目 | 状態 |
+| --- | --- |
+| Search Console プロパティ（URLプレフィックス `https://moris94.github.io/`） | 追加済み・所有権確認済み（HTMLタグ） |
+| 確認用メタタグ | `site/verification.json` の `google-site-verification` に設定済み。トップ（`/`）に出力。**削除すると確認が外れる** |
+| Search Console サイトマップ | 送信済み。送信直後のステータスは「取得できませんでした」（URLは200で正常に返る）。数日後に「成功」になったか要確認 |
+| Search Console インデックス登録リクエスト | 8ページ送信済み：`/taskbit/en/` `/taskbit/ja/` `/geoalbum/en/` `/geoalbum/ja/` `/studyfocus/en/` `/studyfocus/ja/` `/kaeroute/ja/` `/kaeroute/en/` |
+| Bing Webmaster Tools | Search Console からインポートで追加済み（`msvalidate.01` は未使用で空のまま） |
+| Bing サイトマップ | インポートで登録済み（Success、26 URL）。さらに手動で再送信済み（送信直後は Processing） |
+| Bing「AI Performance」 | 未確認 |
+
+手順は以下（再登録や別サイトのときの参考）。
 
 ### Google Search Console
 
 1. https://search.google.com/search-console を開き、「プロパティを追加」で **URLプレフィックス** に `https://moris94.github.io/` を入力する（`github.io` のドメインプロパティはDNSを管理できないので使えない）
 2. 確認方法で「HTMLタグ」を選び、表示された `google-site-verification` の content の値を控える
-3. `site/build.py` の `head()` に `<meta name="google-site-verification" content="控えた値">` を、トップ（`/`）だけに出すよう追加してpushする。または「HTMLファイル」を選び、ダウンロードしたファイルを `site/public/` に置いてpushする
+3. 控えた値を `site/verification.json` の `google-site-verification` に入れ、`python3 site/build.py && python3 site/validate.py` を通してpushする（トップ `/` の head にだけメタタグが出る）
 4. デプロイ後に「確認」を押す
 5. 「サイトマップ」で `https://moris94.github.io/sitemap.xml` を送信する
 6. 「URL検査」で各アプリのトップ（日英）のインデックス登録をリクエストする
 
 ### Bing Webmaster Tools
 
-1. https://www.bing.com/webmasters を開き、「Google Search Consoleからインポート」を選ぶ（Search Consoleの確認後が簡単）。または `https://moris94.github.io/` を追加して、`msvalidate.01` のメタタグかXMLファイルで確認する
+1. https://www.bing.com/webmasters を開き、「Google Search Consoleからインポート」を選ぶ（Search Consoleの確認後が簡単）。Search Console の所有者の Google アカウントを選んで閲覧権限を許可する（許可直後に Bing がエラー画面を出すことがあるが、もう一度インポートすれば通る）。または `https://moris94.github.io/` を追加して、`msvalidate.01` の値を `site/verification.json` に入れてpushする
 2. サイトマップを送信する
 3. 「AI Performance」でCopilotでの引用を確認する
 
