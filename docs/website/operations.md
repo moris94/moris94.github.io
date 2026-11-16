@@ -33,7 +33,7 @@ tests/                 ブラウザテスト（ローカル専用、Playwright +
 
 ### 技術選定の理由
 
-ページは26枚で、内容はアプリごとの本文だけが違う。Astroなどを入れるほどの規模ではなく、依存パッケージがないほうが長く保守しやすいので、Pythonの標準ライブラリだけで書いた小さなジェネレーターにした。出力は静的HTML・CSS・画像だけで、JavaScriptはない（JavaScriptを無効にしても全内容を読める）。
+ページは26枚で、内容はアプリごとの本文だけが違う。Astroなどを入れるほどの規模ではなく、依存パッケージがないほうが長く保守しやすいので、Pythonの標準ライブラリだけで書いた小さなジェネレーターにした。出力は静的HTML・CSS・画像と任意のアクセス解析用JavaScript。JavaScriptを無効にしても全内容とApp Storeリンクを利用できる。
 
 ## 更新方法
 
@@ -70,7 +70,7 @@ cd tests && npm install && BASE=http://127.0.0.1:8765 npm test
 - `robots.txt` はすべてのクローラーを許可し、サイトマップを示す。ユーザーサイトなので robots.txt がホストのルートにあり、全ページに効く
 - `sitemap.xml` は絶対URLと xhtml:link の言語代替を含む
 - iOS Safari の Smart App Banner（`apple-itunes-app`）
-- 画像はWebP（幅360/720、srcset）、width/height指定、ヒーロー以外は遅延読み込み。Webフォントなし、JavaScriptなし
+- 画像はWebP（幅360/720、srcset）、width/height指定、ヒーロー以外は遅延読み込み。Webフォントなし。任意のアクセス解析のみJavaScriptを使用
 
 ## GEO（AI検索）施策
 
@@ -151,3 +151,21 @@ AI検索の定点観測: 新しい会話で、指名質問（「TaskBitとは」
 ## 公開前・公開後に人が確認すること
 
 - 手元の `docs/website/internal-notes.md`（コミットしない）に記録した要確認事項
+
+
+## クリック計測（2026-11-16）
+
+GA4既存プロパティ `549755945`（moris94-7ec1f）にWebストリーム `moris94 official websites`（16347704229、測定ID `G-4JWYM0L799`）を作成。iOSアプリのストリームとは別。Web集計ではストリームIDで絞る。ストリームの拡張計測はオフにし、独自イベントとの二重計上を防ぐ。
+
+`site/analytics.json` は公開測定IDのみ。秘密鍵やAPI secretは使用しない。`site/static/js/analytics.js` は、訪問者が許可するまでGoogleタグを読み込まない。拒否・未選択時は送信しない。選択はlocalStorageに保存し、サイト下部から変更可能。全App Storeリンクは計測拒否・JavaScript無効・タグ読込失敗でも利用できる。
+
+イベント:
+- `page_view`: 許可後のページ閲覧。
+- `app_store_click`: App Storeリンクの実際のクリック。`app_slug`、`app_store_id`、`page_language`、`link_placement`（hero/closing/content）、`destination_country`、`link_url`。
+- `traffic_type`: website / developer_test。公開QAはURLに`?analytics_test=1`を付けるとdebug_modeも有効。テストを通常獲得として扱わない。
+
+ページのクエリとフラグメントは送信しない。参照元はホスト名だけにする。広告シグナル・広告パーソナライズは無効。同意後はGAのCookie・通信メタデータをGoogleが処理する。アプリの「広告・トラッキングなし」という説明を、Web計測と混同しない。
+
+イベント数は許可した訪問者とブロッカーを通過した通信の範囲であり、全クリックの完全な計数ではない。クリックをDLや購入とみなさない。Smart App BannerやApp Storeアプリ側の操作は本JSの対象外。GA4リアルタイム/DebugViewで動作確認し、通常レポートは反映を待つ。パラメータを探索で使う場合はイベントスコープのカスタムディメンションを登録する。
+
+検証: `node --test tests/analytics-test.mjs`、`python3 site/build.py`、`python3 site/validate.py`。ブラウザーのローカルプレビューと公開ページで同意、拒否、クリック受信を確認する。

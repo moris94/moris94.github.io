@@ -107,6 +107,9 @@ class Builder:
         self.out = out
         self.apps = {s: load_app(s) for s in APP_ORDER}
         self.pages: list[dict] = []  # for sitemap
+        self.analytics = json.loads((SITE / "analytics.json").read_text())
+        script = (SITE / "static/js/analytics.js").read_bytes()
+        self.analytics_href = "/static/js/analytics.js?v=" + hashlib.sha256(script).hexdigest()[:10]
         css = (SITE / "static" / "css" / "site.css").read_bytes()
         self.css_href = "/static/css/site.css?v=" + hashlib.sha256(css).hexdigest()[:10]
 
@@ -129,7 +132,26 @@ class Builder:
         if path.endswith("/"):
             target = target / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
+        if "</body>" in content:
+            lang = "ja" if '<html lang="ja">' in content else "en"
+            content = content.replace("</body>", self.analytics_ui(lang) + "\n</body>")
         target.write_text(content, encoding="utf-8")
+
+    def analytics_ui(self, lang: str) -> str:
+        if lang == "ja":
+            title = "サイトのアクセス解析"
+            text = "許可すると、Google Analyticsでページ閲覧とApp Storeへのクリックを計測します。拒否してもサイトとダウンロードは利用できます。設定はいつでも変更できます。"
+            yes, no, settings = "許可する", "拒否する", "アクセス解析の設定"
+        else:
+            title = "Website analytics"
+            text = "With your permission, Google Analytics measures page views and clicks to the App Store. You can decline and still use the site and download apps. You can change your choice anytime."
+            yes, no, settings = "Allow", "Decline", "Analytics settings"
+        return f'''<div class="analytics-settings"><button type="button" data-analytics-settings>{settings}</button></div>
+<aside class="analytics-panel" data-analytics-panel aria-labelledby="analytics-title" hidden>
+  <h2 id="analytics-title">{title}</h2><p>{text}</p>
+  <p><a href="https://policies.google.com/privacy">{"Googleのプライバシーポリシー" if lang == "ja" else "Google Privacy Policy"}</a></p>
+  <div><button type="button" data-analytics-choice="deny">{no}</button><button type="button" data-analytics-choice="allow">{yes}</button></div>
+</aside>'''
 
     # ---------- shared layout
     def head(self, *, lang: str, title: str, description: str, path: str, alternates: dict[str, str] | None,
@@ -183,6 +205,8 @@ class Builder:
         if jsonld:
             data = json.dumps(jsonld, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
             parts.append(f'<script type="application/ld+json">{data}</script>')
+        parts.append(f'<meta name="moris-analytics-id" content="{esc(self.analytics["measurement_id"])}">')
+        parts.append(f'<script defer src="{self.analytics_href}"></script>')
         parts.append("</head>")
         return "\n".join(parts)
 
@@ -231,8 +255,8 @@ class Builder:
   </div>
 </footer>"""
 
-    def store_button(self, app: dict, lang: str, label_key: str = "store") -> str:
-        return (f'<a class="store-btn" href="{app["store_url"][lang]}" >'
+    def store_button(self, app: dict, lang: str, label_key: str = "store", placement: str = "hero") -> str:
+        return (f'<a class="store-btn" href="{app["store_url"][lang]}" data-link-placement="{esc(placement)}">'
                 f'{UI[lang][label_key]}</a>')
 
     # ---------- JSON-LD
@@ -393,7 +417,7 @@ class Builder:
     <div class="wrap">
       <h2>{esc(t['closing_h'])}</h2>
       <p>{t['closing']}</p>
-      <div class="cta">{self.store_button(app, lang)}<p class="price-note">{t['price_note']}</p></div>
+      <div class="cta">{self.store_button(app, lang, placement="closing")}<p class="price-note">{t['price_note']}</p></div>
     </div>
   </section>
 </main>
@@ -407,6 +431,9 @@ class Builder:
     def app_sub(self, app: dict, lang: str, kind: str, alts: dict, xdef: str) -> None:
         u, t, slug = UI[lang], app["t"][lang], app["slug"]
         page = t[kind]
+        analytics_note = ""
+        if kind == "privacy":
+            analytics_note = ('<h2>このWebサイトのアクセス解析</h2><p>アプリのデータ取り扱いとは別に、このサイトでは許可した方のページ閲覧とApp StoreリンクのクリックをGoogle Analyticsで計測します。Googleはブラウザー・端末・通信に関する情報とCookieを扱います。広告向けのシグナルは無効です。送信するページURLから検索パラメータを除き、参照元はホスト名だけにします。サイト下部の「アクセス解析の設定」で拒否・変更できます。拒否しても利用に影響しません。</p>' if lang == "ja" else '<h2>Analytics on this website</h2><p>Separate from how the app handles data, this website uses Google Analytics to measure page views and App Store link clicks only with your permission. Google processes browser, device and connection information and analytics cookies. Advertising signals are disabled. Page URL query parameters are removed and referrers are reduced to the hostname. Use Analytics settings at the bottom of the page to decline or change your choice. Declining does not affect access.</p>')
         path = f"/{slug}/{lang}/{kind}/"
         head = self.common_head(app, lang, page["title"], page["description"], path, alts, xdef,
                                 self.sub_jsonld(app, lang, path, page["h1"], page["description"]))
@@ -418,6 +445,7 @@ class Builder:
     <p class="crumb"><a href="/{slug}/{lang}/">{esc(t['name'])}</a></p>
     <h1>{esc(page['h1'])}</h1>
     {page['body']}
+    {analytics_note}
     <p class="back"><a href="/{slug}/{lang}/">{u['back_to_app']}</a></p>
   </div>
 </main>
