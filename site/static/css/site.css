@@ -319,3 +319,15 @@ main > section + section { border-top: 1px solid var(--line); }
 .analytics-panel > div { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
 .analytics-panel button { background: #fff; color: #202124; border: 1px solid #666; border-radius: 6px; padding: 8px 16px; font: inherit; cursor: pointer; }
 .analytics-panel button:focus-visible, .analytics-settings button:focus-visible { outline: 3px solid #174ea6; outline-offset: 3px; }
+
+/* Editorial guides use the app's existing typography and theme. */
+.guide { max-width: 920px; padding-block: 3rem; }
+.guide h1 { font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.35; }
+.guide p { line-height: 1.9; overflow-wrap: anywhere; }
+.guide section { margin-block: 2.5rem; }
+.guide-step { display: grid; grid-template-columns: minmax(0, 1fr) minmax(150px, 250px); gap: 2rem; align-items: start; }
+.guide-step figure { margin: 0; }
+.guide-step img { width: 100%; height: auto; }
+.guide figcaption { font-size: .85rem; margin-top: .5rem; }
+.guide-promo { margin-block: 2.5rem; padding-block: 1.5rem; border-top: 1px solid currentColor; }
+@media (max-width: 620px) { .guide-step { grid-template-columns: minmax(0, 1fr); } .guide-step figure { max-width: 250px; margin-inline: auto; } }

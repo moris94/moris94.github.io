@@ -13,6 +13,7 @@ import json
 import pathlib
 import shutil
 import struct
+from guides import GUIDES
 
 SITE = pathlib.Path(__file__).resolve().parent
 ROOT = SITE.parent
@@ -425,8 +426,41 @@ class Builder:
 </body>
 </html>
 """
+        if lang == "ja" and slug in GUIDES:
+            g = GUIDES[slug]
+            guide_link = f'<section class="wrap guide-promo"><h2>使い方ガイド</h2><p><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p></section>'
+            body = body.replace('</main>', guide_link + '</main>')
         self.write(path, head + "\n" + body)
-        self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": app["checked"]})
+        self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": "2026-11-18" if lang == "ja" and slug in GUIDES else app["checked"]})
+
+    def guide(self, app: dict) -> None:
+        g = GUIDES[app["slug"]]
+        path = f"/{app['slug']}/ja/guides/{g['slug']}/"
+        graph = {"@context":"https://schema.org", "@graph":[*self.graph_common(), {
+            "@type":"Article", "@id":self.abs(path), "url":self.abs(path),
+            "headline":g["title"], "description":g["description"], "inLanguage":"ja",
+            "datePublished":"2026-11-18", "dateModified":"2026-11-18",
+            "author":{"@type":"Person","name":DEVELOPER},
+            "about":{"@id":self.abs(f"/{app['slug']}/ja/#app")}}]}
+        head = self.common_head(app, "ja", g["title"] + "｜" + app["t"]["ja"]["name"],
+                                g["description"], path, {"ja":path}, path, graph)
+        steps = "".join(f'<section class="guide-step"><div><h2>{i}. {esc(h)}</h2><p>{esc(body)}</p></div><figure>{self.img(app["slug"], shot, "ja", h)}<figcaption>既存の掲載画面例</figcaption></figure></section>'
+                        for i,(h,body,shot) in enumerate(g["steps"],1))
+        body = f"""<body class="t-{app['theme']}">{self.app_header(app,'ja',None)}
+<main id="main" class="guide wrap"><article>
+<p class="eyebrow">使い方ガイド</p><h1>{esc(g['title'])}</h1>
+<p class="lead">{esc(g['lead'])}</p>
+<p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time></p>
+<p class="note">画面は掲載例です。機能情報：2026年11月6日確認。最新の提供内容・価格はApp Storeをご確認ください。</p>
+<section><h2>始める前に</h2><p>{esc(g['before'])}</p></section>
+{steps}
+<section class="notice"><h2>できないこと・注意点</h2><p>{esc(g['limits'])}</p></section>
+<section><h2>無料で試す範囲と、その次</h2><p>{esc(g['decision'])}</p>
+<div class="cta">{self.store_button(app,'ja',placement='guide')}<p class="price-note">{app['t']['ja']['price_note']}</p></div></section>
+<p><a href="/{app['slug']}/ja/">機能・料金・よくある質問を詳しく見る</a> · <a href="/{app['slug']}/ja/privacy/">プライバシー</a> · <a href="/{app['slug']}/ja/support/">サポート</a></p>
+</article></main>{self.footer('ja',app['slug'])}</body></html>"""
+        self.write(path, head + body)
+        self.pages.append({"path":path,"alts":{"ja":path},"xdef":path,"lastmod":"2026-11-18"})
 
     def app_sub(self, app: dict, lang: str, kind: str, alts: dict, xdef: str) -> None:
         u, t, slug = UI[lang], app["t"][lang], app["slug"]
@@ -525,6 +559,7 @@ class Builder:
     <h1>{copy[2]}</h1>
     <p class="lead">{copy[3]}</p>
     <ul class="hub-list">{''.join(rows)}</ul>
+    {('<section class="guide-promo"><h2>使い方ガイド</h2><ul>' + ''.join(f'<li><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></li>' for slug,g in GUIDES.items()) + '</ul></section>') if lang == 'ja' else ''}
     <p class="hub-contact">{UI[lang]['contact']}: <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a></p>
   </div>
 </main>
@@ -532,7 +567,7 @@ class Builder:
 </html>
 """
         self.write(path, head + "\n" + body)
-        self.pages.append({"path": path, "alts": alts, "xdef": "/", "lastmod": max(a["checked"] for a in self.apps.values())})
+        self.pages.append({"path": path, "alts": alts, "xdef": "/", "lastmod": "2026-11-18" if lang == "ja" else max(a["checked"] for a in self.apps.values())})
 
     def not_found(self) -> None:
         head = self.head(lang="ja", title="ページが見つかりません / Page not found", description="お探しのページは見つかりませんでした。",
@@ -583,6 +618,8 @@ class Builder:
         self.hub("ja")
         for s in APP_ORDER:
             self.app_pages(self.apps[s])
+        for slug in GUIDES:
+            self.guide(self.apps[slug])
         self.not_found()
         self.sitemap()
         print(f"built {len(self.pages)} indexable pages into {self.out}")
