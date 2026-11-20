@@ -331,3 +331,20 @@ main > section + section { border-top: 1px solid var(--line); }
 .guide figcaption { font-size: .85rem; margin-top: .5rem; }
 .guide-promo { margin-block: 2.5rem; padding-block: 1.5rem; border-top: 1px solid currentColor; }
 @media (max-width: 620px) { .guide-step { grid-template-columns: minmax(0, 1fr); } .guide-step figure { max-width: 250px; margin-inline: auto; } }
+
+.resource-action { font: inherit; padding: .75rem 1rem; border: 1px solid currentColor; border-radius: .5rem; background: transparent; color: inherit; cursor: pointer; }
+.resource-callout { border-left: 3px solid currentColor; padding: 1rem; }
+.prep-checks { list-style: none; padding: 0; }
+.prep-checks li { border-bottom: 1px solid #9996; padding-block: 1rem; }
+.prep-checks label { display: block; cursor: pointer; }
+.prep-checks input { width: 1.25rem; height: 1.25rem; vertical-align: middle; }
+.prep-checks span { display: block; padding-left: 1.7rem; }
+.guide pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; background: #8881; font: inherit; line-height: 1.8; }
+@media print {
+  .site-header, .skip, .analytics-settings, .analytics-panel, .no-print, .resource-action, footer { display: none !important; }
+  .guide { max-width: none; padding: 0; }
+  .guide h1 { font-size: 23pt; }
+  .guide section { margin-block: 1rem; }
+  .prep-checks li { break-inside: avoid; }
+  body { background: white !important; color: black !important; }
+}

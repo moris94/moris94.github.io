@@ -4,7 +4,7 @@
   const measurement = document.querySelector('meta[name="moris-analytics-id"]')?.content;
   if (!/^G-[A-Z0-9]+$/.test(measurement || '')) return;
   const key = 'moris-site-analytics-choice';
-  const appIds = {'6786552954':'taskbit','6813050203':'geoalbum','6800586592':'studyfocus','6811297451':'kaeroute'};
+  const appIds = {'6786552954':'taskbit','6813050203':'geoalbum','6800586592':'studyfocus','6811297451':'kaeroute','6796595506':'clipnote'};
   const panel = document.querySelector('[data-analytics-panel]');
   const settings = document.querySelector('[data-analytics-settings]');
   const test = new URLSearchParams(location.search).get('analytics_test') === '1';
@@ -21,7 +21,7 @@
     window.gtag('event', name, {
       send_to: measurement, page_location: cleanPage(), page_referrer: sourceHost() ? `https://${sourceHost()}/` : '',
       page_title: document.title, page_language: lang,
-      app_slug: location.pathname.split('/')[1] in {'taskbit':1,'geoalbum':1,'studyfocus':1,'kaeroute':1} ? location.pathname.split('/')[1] : 'portfolio',
+      app_slug: location.pathname.split('/')[1] in {'taskbit':1,'geoalbum':1,'studyfocus':1,'kaeroute':1,'clipnote':1} ? location.pathname.split('/')[1] : 'portfolio',
       traffic_type: test ? 'developer_test' : 'website',
       ...(test ? {debug_mode:true} : {}), transport_type:'beacon', ...values
     });

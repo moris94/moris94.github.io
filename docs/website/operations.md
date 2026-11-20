@@ -169,3 +169,11 @@ GA4既存プロパティ `549755945`（moris94-7ec1f）にWebストリーム `mo
 イベント数は許可した訪問者とブロッカーを通過した通信の範囲であり、全クリックの完全な計数ではない。クリックをDLや購入とみなさない。Smart App BannerやApp Storeアプリ側の操作は本JSの対象外。GA4リアルタイム/DebugViewで動作確認し、通常レポートは反映を待つ。パラメータを探索で使う場合はイベントスコープのカスタムディメンションを登録する。
 
 検証: `node --test tests/analytics-test.mjs`、`python3 site/build.py`、`python3 site/validate.py`。ブラウザーのローカルプレビューと公開ページで同意、拒否、クリック受信を確認する。
+
+## 2026-11-20 discovery and conversion changes
+
+The printable checklist and ClipNote template page provide reusable resources, without collecting checklist contents or example text. App Store buttons use the existing opt-in analytics with `checklist`, `hero`, or `closing` placement; ClipNote ID 6796595506 is now recognized.
+
+`sitemap.txt` is a UTF-8, one-URL-per-line control generated from exactly the same canonical page list as `sitemap.xml`. It is added to diagnose persistent Google fetch failures, not to assert that XML was malformed. Keep the original XML and robots reference; do not remove existing Search Console submissions. Test the public text file before submitting it once. Indexing is not guaranteed.
+
+ClipNote facts checked 2026-11-20 via Apple Lookup and ASC localizations: version 1.0, iOS 17+, Japanese/English; templates, variables, copying. ClipNote Pro is an approved non-consumable purchase, with iCloud Sync explicitly named in its localization. Japanese marketing URL is unset. The app's own settings, storefront metadata and IAP were not changed.

@@ -14,6 +14,7 @@ import pathlib
 import shutil
 import struct
 from guides import GUIDES
+from growth_pages import build_resources
 
 SITE = pathlib.Path(__file__).resolve().parent
 ROOT = SITE.parent
@@ -459,6 +460,8 @@ class Builder:
 <div class="cta">{self.store_button(app,'ja',placement='guide')}<p class="price-note">{app['t']['ja']['price_note']}</p></div></section>
 <p><a href="/{app['slug']}/ja/">機能・料金・よくある質問を詳しく見る</a> · <a href="/{app['slug']}/ja/privacy/">プライバシー</a> · <a href="/{app['slug']}/ja/support/">サポート</a></p>
 </article></main>{self.footer('ja',app['slug'])}</body></html>"""
+        if app['slug'] == 'kaeroute':
+            body = body.replace('<section><h2>始める前に', '<p class="resource-callout"><a href="/kaeroute/ja/checklist/">準備項目をチェックして印刷する（無料）</a></p><section><h2>始める前に')
         self.write(path, head + body)
         self.pages.append({"path":path,"alts":{"ja":path},"xdef":path,"lastmod":"2026-11-18"})
 
@@ -560,6 +563,7 @@ class Builder:
     <p class="lead">{copy[3]}</p>
     <ul class="hub-list">{''.join(rows)}</ul>
     {('<section class="guide-promo"><h2>使い方ガイド</h2><ul>' + ''.join(f'<li><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></li>' for slug,g in GUIDES.items()) + '</ul></section>') if lang == 'ja' else ''}
+    {('<section><h2>定型文の再利用</h2><p><a href="/clipnote/ja/">ClipNote：返信文とAI依頼文のテンプレート例</a></p><p><a href="/kaeroute/ja/checklist/">徒歩帰宅の準備チェックリストを印刷する</a></p></section>') if lang == 'ja' else ''}
     <p class="hub-contact">{UI[lang]['contact']}: <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a></p>
   </div>
 </main>
@@ -567,7 +571,7 @@ class Builder:
 </html>
 """
         self.write(path, head + "\n" + body)
-        self.pages.append({"path": path, "alts": alts, "xdef": "/", "lastmod": "2026-11-18" if lang == "ja" else max(a["checked"] for a in self.apps.values())})
+        self.pages.append({"path": path, "alts": alts, "xdef": "/", "lastmod": "2026-11-20" if lang == "ja" else max(a["checked"] for a in self.apps.values())})
 
     def not_found(self) -> None:
         head = self.head(lang="ja", title="ページが見つかりません / Page not found", description="お探しのページは見つかりませんでした。",
@@ -601,6 +605,7 @@ class Builder:
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
                + "\n".join(rows) + "\n</urlset>\n")
         (self.out / "sitemap.xml").write_text(xml, encoding="utf-8")
+        (self.out / "sitemap.txt").write_text("\n".join(self.abs(p["path"]) for p in self.pages) + "\n", encoding="utf-8")
         (self.out / "robots.txt").write_text(
             "# Public pages may be crawled by search engines and AI search crawlers.\n"
             "User-agent: *\nAllow: /\n\n"
@@ -620,6 +625,7 @@ class Builder:
             self.app_pages(self.apps[s])
         for slug in GUIDES:
             self.guide(self.apps[slug])
+        build_resources(self)
         self.not_found()
         self.sitemap()
         print(f"built {len(self.pages)} indexable pages into {self.out}")
