@@ -296,7 +296,7 @@ class Builder:
         }
         page = {"@type": "WebPage", "@id": self.abs(path), "url": self.abs(path), "name": t["title"],
                 "description": t["description"], "inLanguage": lang, "about": {"@id": self.abs(f"/{slug}/{lang}/#app")},
-                "isPartOf": {"@id": self.abs("/#website")}, "dateModified": app["checked"]}
+                "isPartOf": {"@id": self.abs("/#website")}, "dateModified": t.get("modified", app["checked"])}
         return {"@context": "https://schema.org", "@graph": [app_node, page, *self.graph_common()]}
 
     def sub_jsonld(self, app: dict, lang: str, path: str, title: str, description: str) -> dict:
@@ -432,7 +432,8 @@ class Builder:
             guide_link = f'<section class="wrap guide-promo"><h2>使い方ガイド</h2><p><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p></section>'
             body = body.replace('</main>', guide_link + '</main>')
         self.write(path, head + "\n" + body)
-        self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": "2026-11-18" if lang == "ja" and slug in GUIDES else app["checked"]})
+        lastmod = "2026-11-18" if lang == "ja" and slug in GUIDES else app["checked"]
+        self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": t.get("modified", lastmod)})
 
     def guide(self, app: dict) -> None:
         g = GUIDES[app["slug"]]
