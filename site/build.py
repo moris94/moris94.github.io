@@ -437,11 +437,12 @@ class Builder:
 
     def guide(self, app: dict) -> None:
         g = GUIDES[app["slug"]]
+        modified = "2026-11-22"
         path = f"/{app['slug']}/ja/guides/{g['slug']}/"
         graph = {"@context":"https://schema.org", "@graph":[*self.graph_common(), {
             "@type":"Article", "@id":self.abs(path), "url":self.abs(path),
             "headline":g["title"], "description":g["description"], "inLanguage":"ja",
-            "datePublished":"2026-11-18", "dateModified":"2026-11-18",
+            "datePublished":"2026-11-18", "dateModified":modified,
             "author":{"@type":"Person","name":DEVELOPER},
             "about":{"@id":self.abs(f"/{app['slug']}/ja/#app")}}]}
         head = self.common_head(app, "ja", g["title"] + "｜" + app["t"]["ja"]["name"],
@@ -452,7 +453,7 @@ class Builder:
 <main id="main" class="guide wrap"><article>
 <p class="eyebrow">使い方ガイド</p><h1>{esc(g['title'])}</h1>
 <p class="lead">{esc(g['lead'])}</p>
-<p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time></p>
+<p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time> · 更新：<time datetime="{modified}">2026年11月22日</time></p>
 <p class="note">画面は掲載例です。機能情報：2026年11月6日確認。最新の提供内容・価格はApp Storeをご確認ください。</p>
 <section><h2>始める前に</h2><p>{esc(g['before'])}</p></section>
 {steps}
@@ -464,7 +465,7 @@ class Builder:
         if app['slug'] == 'kaeroute':
             body = body.replace('<section><h2>始める前に', '<p class="resource-callout"><a href="/kaeroute/ja/checklist/">準備項目をチェックして印刷する（無料）</a></p><section><h2>始める前に')
         self.write(path, head + body)
-        self.pages.append({"path":path,"alts":{"ja":path},"xdef":path,"lastmod":"2026-11-18"})
+        self.pages.append({"path":path,"alts":{"ja":path},"xdef":path,"lastmod":modified})
 
     def app_sub(self, app: dict, lang: str, kind: str, alts: dict, xdef: str) -> None:
         u, t, slug = UI[lang], app["t"][lang], app["slug"]

@@ -52,6 +52,7 @@ def build_resources(b):
     cards=''.join('<section><h3>'+h+'</h3><pre>'+text+'</pre><button type="button" class="resource-action" data-copy>この例文をコピー</button></section>' for h,text in examples)
     body=f'''<p class="lead">毎回少しだけ違う返信文を、最初から書き直していませんか。ClipNoteは、定型文を保存し、コピー前に必要な変数を入力して使えるiPhoneアプリです。</p>
 <p><a href="{CLIP_URL}" class="store-btn" data-link-placement="hero">App Storeで見る</a></p><p>App Storeでの表示名は「ClipNote Snippets」。無料ダウンロード・App内課金あり。iOS 17.0以降、日本語・英語対応。</p>
+<section><h2>iPhoneのユーザ辞書とClipNoteの使い分け</h2><p>「確認しました」など、毎回同じ短いフレーズを入力するには、iPhone標準のユーザ辞書に読みを登録すると手軽です。宛名・日程・用件が毎回変わる返信は、ClipNoteにテンプレートとして保存し、コピー前に変わる箇所だけ入力できます。複数の返信を用途ごとにまとめたいときは、フォルダで整理できます。</p></section>
 <section><h2>よく使う文章を、差し替える箇所と分ける</h2><p>下の例文をコピーし、自分の用途に直して使えます。【 】は説明用の差し替え目印です。ClipNote内の変数記法を表すものではありません。実際の登録はアプリの画面に従ってください。</p>{cards}<p role="status" data-copy-status aria-live="polite"></p></section>
 <section><h2>ClipNoteで使う流れ</h2><ol><li>繰り返し使う文章をテンプレートとして保存する。</li><li>毎回変わる箇所を変数として設定する。</li><li>コピー前に変数を入力し、宛名や日程を確認してから、使いたいアプリへ貼り付ける。</li></ol></section>
 <section><h2>無料で試すこと・Proを検討する場面</h2><p>まず定型文の保存とコピーが用途に合うか確認してください。ClipNote Proは、iCloud同期を含む機能を使うための買い切りのApp内課金です。Proの現在の価格と提供範囲は、アプリの購入画面で確認してください。</p><p>単に1つの文章をコピーするだけなら、手元のメモからのコピーでも対応できます。変数を入れて繰り返し使いたい、同期が必要、といった用途に合わせて検討してください。</p></section>
