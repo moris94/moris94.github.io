@@ -449,6 +449,17 @@ class Builder:
                                 g["description"], path, {"ja":path}, path, graph)
         steps = "".join(f'<section class="guide-step"><div><h2>{i}. {esc(h)}</h2><p>{esc(body)}</p></div><figure>{self.img(app["slug"], shot, "ja", h)}<figcaption>既存の掲載画面例</figcaption></figure></section>'
                         for i,(h,body,shot) in enumerate(g["steps"],1))
+        example = ""
+        if case := g.get("example"):
+            visits = "".join(
+                f"<li><strong>{esc(label)}</strong> {esc(detail)}</li>"
+                for label, detail in case["visits"]
+            )
+            example = f"""
+<section class="guide-step">
+<div><h2>{esc(case['title'])}</h2><p>{esc(case['intro'])}</p><ol>{visits}</ol></div>
+<figure>{self.img(app['slug'], case['shot'], 'ja', case['alt'])}<figcaption>{esc(case['caption'])}</figcaption></figure>
+</section>"""
         body = f"""<body class="t-{app['theme']}">{self.app_header(app,'ja',None)}
 <main id="main" class="guide wrap"><article>
 <p class="eyebrow">使い方ガイド</p><h1>{esc(g['title'])}</h1>
@@ -456,7 +467,7 @@ class Builder:
 <p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time> · 更新：<time datetime="{modified}">2026年11月22日</time></p>
 <p class="note">画面は掲載例です。機能情報：2026年11月6日確認。最新の提供内容・価格はApp Storeをご確認ください。</p>
 <section><h2>始める前に</h2><p>{esc(g['before'])}</p></section>
-{steps}
+{steps}{example}
 <section class="notice"><h2>できないこと・注意点</h2><p>{esc(g['limits'])}</p></section>
 <section><h2>無料で試す範囲と、その次</h2><p>{esc(g['decision'])}</p>
 <div class="cta">{self.store_button(app,'ja',placement='guide')}<p class="price-note">{app['t']['ja']['price_note']}</p></div></section>
