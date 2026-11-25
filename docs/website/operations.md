@@ -177,3 +177,15 @@ The printable checklist and ClipNote template page provide reusable resources, w
 `sitemap.txt` is a UTF-8, one-URL-per-line control generated from exactly the same canonical page list as `sitemap.xml`. It is added to diagnose persistent Google fetch failures, not to assert that XML was malformed. Keep the original XML and robots reference; do not remove existing Search Console submissions. Test the public text file before submitting it once. Indexing is not guaranteed.
 
 ClipNote facts checked 2026-11-20 via Apple Lookup and ASC localizations: version 1.0, iOS 17+, Japanese/English; templates, variables, copying. ClipNote Pro is an approved non-consumable purchase, with iCloud Sync explicitly named in its localization. Japanese marketing URL is unset. The app's own settings, storefront metadata and IAP were not changed.
+
+### 自然検索からのApp Store送客（2026-11-25公開版以降）
+
+GA4のウェブストリームに限定し、セッションのデフォルトチャネルグループが Organic Search の訪問を入口ページ別に集計します。閲覧セッション数とストアを押したセッション数を比較してください。PVとクリックの延べ回数も別列で出力します。サイト内の別ページを経由したクリックも元の入口に含みます。これは計測に同意した訪問の集計で、ダウンロード件数は含みません。
+
+Analytics読み取り権限を持つOAuthアクセストークンを環境変数 GA4_ACCESS_TOKEN に設定し、対象の開始日・終了日を指定します。
+
+```sh
+python3 tools/organic_funnel.py 2026-11-26 2026-12-18
+```
+
+公開QAでは最初のページに `?analytics_test=1` を付けてください。同じタブの内部移動にも適用し、試験イベントは `qa_page_view` と `qa_app_store_click` として送ります。通常の2イベントを集計する上記レポートから除外されます。タブを閉じるか `?analytics_test=0` で終了します。ガイドの実例直後のボタンは `guide_example`、末尾のボタンは従来の `guide` です。

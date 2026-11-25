@@ -7,7 +7,15 @@
   const appIds = {'6786552954':'taskbit','6813050203':'geoalbum','6800586592':'studyfocus','6811297451':'kaeroute','6796595506':'clipnote'};
   const panel = document.querySelector('[data-analytics-panel]');
   const settings = document.querySelector('[data-analytics-settings]');
-  const test = new URLSearchParams(location.search).get('analytics_test') === '1';
+  const testParam = new URLSearchParams(location.search).get('analytics_test');
+  // Keep QA events separate while following links in the same tab.
+  function testSession() {
+    try {
+      if (testParam === '1') sessionStorage.setItem('moris-analytics-test', '1');
+      if (testParam === '0') sessionStorage.removeItem('moris-analytics-test');
+      return sessionStorage.getItem('moris-analytics-test') === '1';
+    } catch { return testParam === '1'; }
+  }
   let enabled = false;
   let loaded = false;
   let viewed = false;
@@ -18,7 +26,8 @@
   function choice() { try { return localStorage.getItem(key); } catch { return null; } }
   function send(name, values = {}) {
     if (!enabled) return;
-    window.gtag('event', name, {
+    const test = testSession();
+    window.gtag('event', test ? 'qa_' + name : name, {
       send_to: measurement, page_location: cleanPage(), page_referrer: sourceHost() ? `https://${sourceHost()}/` : '',
       page_title: document.title, page_language: lang,
       app_slug: location.pathname.split('/')[1] in {'taskbit':1,'geoalbum':1,'studyfocus':1,'kaeroute':1,'clipnote':1} ? location.pathname.split('/')[1] : 'portfolio',

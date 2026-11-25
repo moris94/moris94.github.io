@@ -430,14 +430,14 @@ class Builder:
         if lang == "ja" and slug in GUIDES:
             g = GUIDES[slug]
             guide_link = f'<section class="wrap guide-promo"><h2>使い方ガイド</h2><p><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p></section>'
-            body = body.replace('</main>', guide_link + '</main>')
+            body = body.replace('<section class="facts-section"', guide_link + '<section class="facts-section"', 1)
         self.write(path, head + "\n" + body)
-        lastmod = "2026-11-18" if lang == "ja" and slug in GUIDES else app["checked"]
-        self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": t.get("modified", lastmod)})
+        lastmod = "2026-11-25" if lang == "ja" and slug in GUIDES else t.get("modified", app["checked"])
+        self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": lastmod})
 
     def guide(self, app: dict) -> None:
         g = GUIDES[app["slug"]]
-        modified = "2026-11-22"
+        modified = "2026-11-25"
         path = f"/{app['slug']}/ja/guides/{g['slug']}/"
         graph = {"@context":"https://schema.org", "@graph":[*self.graph_common(), {
             "@type":"Article", "@id":self.abs(path), "url":self.abs(path),
@@ -460,21 +460,27 @@ class Builder:
 <div><h2>{esc(case['title'])}</h2><p>{esc(case['intro'])}</p><ol>{visits}</ol></div>
 <figure>{self.img(app['slug'], case['shot'], 'ja', case['alt'])}<figcaption>{esc(case['caption'])}</figcaption></figure>
 </section>"""
+        if preview := g.get("preview"):
+            heading, detail, shot, alt = preview
+            example = f'<section class="guide-step"><div><h2>{esc(heading)}</h2><p>{esc(detail)}</p></div><figure>{self.img(app["slug"], shot, "ja", alt)}</figure></section>'
+        checklist = ""
+        if app["slug"] == "kaeroute":
+            checklist = '<p class="resource-callout">持ち物や連絡先だけを紙で確認したい方は、<a href="/kaeroute/ja/checklist/">無料の徒歩帰宅準備チェックリストを開いて印刷</a>できます。</p>'
         body = f"""<body class="t-{app['theme']}">{self.app_header(app,'ja',None)}
 <main id="main" class="guide wrap"><article>
 <p class="eyebrow">使い方ガイド</p><h1>{esc(g['title'])}</h1>
 <p class="lead">{esc(g['lead'])}</p>
-<p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time> · 更新：<time datetime="{modified}">2026年11月22日</time></p>
+<p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time> · 更新：<time datetime="{modified}">2026年11月25日</time></p>
 <p class="note">画面は掲載例です。機能情報：2026年11月6日確認。最新の提供内容・価格はApp Storeをご確認ください。</p>
+{checklist}{example}
+<div class="cta">{self.store_button(app,'ja',placement='guide_example')}</div>
 <section><h2>始める前に</h2><p>{esc(g['before'])}</p></section>
-{steps}{example}
+{steps}
 <section class="notice"><h2>できないこと・注意点</h2><p>{esc(g['limits'])}</p></section>
 <section><h2>無料で試す範囲と、その次</h2><p>{esc(g['decision'])}</p>
 <div class="cta">{self.store_button(app,'ja',placement='guide')}<p class="price-note">{app['t']['ja']['price_note']}</p></div></section>
 <p><a href="/{app['slug']}/ja/">機能・料金・よくある質問を詳しく見る</a> · <a href="/{app['slug']}/ja/privacy/">プライバシー</a> · <a href="/{app['slug']}/ja/support/">サポート</a></p>
 </article></main>{self.footer('ja',app['slug'])}</body></html>"""
-        if app['slug'] == 'kaeroute':
-            body = body.replace('<section><h2>始める前に', '<p class="resource-callout"><a href="/kaeroute/ja/checklist/">準備項目をチェックして印刷する（無料）</a></p><section><h2>始める前に')
         self.write(path, head + body)
         self.pages.append({"path":path,"alts":{"ja":path},"xdef":path,"lastmod":modified})
 
