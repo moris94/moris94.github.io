@@ -13,7 +13,7 @@ import json
 import pathlib
 import shutil
 import struct
-from guides import GUIDES
+from guides import GUIDES, GUIDES_EN
 from growth_pages import build_resources
 
 SITE = pathlib.Path(__file__).resolve().parent
@@ -21,6 +21,24 @@ ROOT = SITE.parent
 APP_ORDER = ("taskbit", "geoalbum", "studyfocus", "kaeroute")
 DEVELOPER = "Ryo Morishita"
 SUPPORT_EMAIL = "shunmemo.support@gmail.com"
+GUIDE_UPDATED = "2026-11-26"
+GUIDE_CONTENT = {"ja": GUIDES, "en": GUIDES_EN}
+GUIDE_LABELS = {
+    "ja": {
+        "title": "使い方ガイド", "author": "アプリ開発者",
+        "published": "公開", "updated": "更新",
+        "screens": "画面は掲載例です。最新の提供内容・価格はApp Storeをご確認ください。",
+        "caption": "既存の掲載画面例", "before": "始める前に", "decision": "無料で試す範囲と、その次",
+        "overview": "機能・料金・よくある質問を詳しく見る",
+    },
+    "en": {
+        "title": "How-to guides", "author": "app developer",
+        "published": "Published", "updated": "Updated",
+        "screens": "Screenshots illustrate the steps. Check the App Store for current availability and pricing.",
+        "caption": "App screenshot", "before": "Before you start", "decision": "What you can try for free",
+        "overview": "See features, pricing, and frequently asked questions",
+    },
+}
 
 UI = {
     "ja": {
@@ -294,9 +312,10 @@ class Builder:
             "inLanguage": app["ui_languages"],
             "sameAs": sorted(set(app["store_url"].values())) + [self.abs(f"/{slug}/{o}/") for o in app["langs"] if o != lang],
         }
+        modified = GUIDE_UPDATED if slug in GUIDE_CONTENT[lang] else t.get("modified", app["checked"])
         page = {"@type": "WebPage", "@id": self.abs(path), "url": self.abs(path), "name": t["title"],
                 "description": t["description"], "inLanguage": lang, "about": {"@id": self.abs(f"/{slug}/{lang}/#app")},
-                "isPartOf": {"@id": self.abs("/#website")}, "dateModified": t.get("modified", app["checked"])}
+                "isPartOf": {"@id": self.abs("/#website")}, "dateModified": modified}
         return {"@context": "https://schema.org", "@graph": [app_node, page, *self.graph_common()]}
 
     def sub_jsonld(self, app: dict, lang: str, path: str, title: str, description: str) -> dict:
@@ -427,28 +446,35 @@ class Builder:
 </body>
 </html>
 """
-        if lang == "ja" and slug in GUIDES:
-            g = GUIDES[slug]
-            guide_link = f'<section class="wrap guide-promo"><h2>使い方ガイド</h2><p><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p></section>'
+        if slug in GUIDE_CONTENT[lang]:
+            g = GUIDE_CONTENT[lang][slug]
+            guide_path = f'/{slug}/{lang}/guides/{GUIDES[slug]["slug"]}/'
+            guide_link = f'<section class="wrap guide-promo"><h2>{GUIDE_LABELS[lang]["title"]}</h2><p><a href="{guide_path}">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p></section>'
             body = body.replace('<section class="facts-section"', guide_link + '<section class="facts-section"', 1)
         self.write(path, head + "\n" + body)
-        lastmod = "2026-11-25" if lang == "ja" and slug in GUIDES else t.get("modified", app["checked"])
+        lastmod = GUIDE_UPDATED if slug in GUIDE_CONTENT[lang] else t.get("modified", app["checked"])
         self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": lastmod})
 
-    def guide(self, app: dict) -> None:
-        g = GUIDES[app["slug"]]
-        modified = "2026-11-25"
-        path = f"/{app['slug']}/ja/guides/{g['slug']}/"
+    def guide(self, app: dict, lang: str) -> None:
+        slug = app["slug"]
+        g, labels, ui = GUIDE_CONTENT[lang][slug], GUIDE_LABELS[lang], UI[lang]
+        alts = {locale: f"/{slug}/{locale}/guides/{GUIDES[slug]['slug']}/"
+                for locale in GUIDE_CONTENT if slug in GUIDE_CONTENT[locale]}
+        path, x_default = alts[lang], alts[app["primary_lang"]]
+        published = "2026-11-18" if lang == "ja" else GUIDE_UPDATED
         graph = {"@context":"https://schema.org", "@graph":[*self.graph_common(), {
             "@type":"Article", "@id":self.abs(path), "url":self.abs(path),
-            "headline":g["title"], "description":g["description"], "inLanguage":"ja",
-            "datePublished":"2026-11-18", "dateModified":modified,
+            "headline":g["title"], "description":g["description"], "inLanguage":lang,
+            "datePublished":published, "dateModified":GUIDE_UPDATED,
             "author":{"@type":"Person","name":DEVELOPER},
-            "about":{"@id":self.abs(f"/{app['slug']}/ja/#app")}}]}
-        head = self.common_head(app, "ja", g["title"] + "｜" + app["t"]["ja"]["name"],
-                                g["description"], path, {"ja":path}, path, graph)
-        steps = "".join(f'<section class="guide-step"><div><h2>{i}. {esc(h)}</h2><p>{esc(body)}</p></div><figure>{self.img(app["slug"], shot, "ja", h)}<figcaption>既存の掲載画面例</figcaption></figure></section>'
-                        for i,(h,body,shot) in enumerate(g["steps"],1))
+            "about":{"@id":self.abs(f"/{slug}/{lang}/#app")}}]}
+        head = self.common_head(app, lang, g["title"] + " | " + app["t"][lang]["name"],
+                                g["description"], path, alts, x_default, graph)
+        steps = "".join(
+            f'<section class="guide-step"><div><h2>{i}. {esc(h)}</h2><p>{esc(body)}</p></div>'
+            f'<figure>{self.img(slug, shot, lang, h)}<figcaption>{labels["caption"]}</figcaption></figure></section>'
+            for i, (h, body, shot) in enumerate(g["steps"], 1)
+        )
         example = ""
         if case := g.get("example"):
             visits = "".join(
@@ -458,31 +484,34 @@ class Builder:
             example = f"""
 <section class="guide-step">
 <div><h2>{esc(case['title'])}</h2><p>{esc(case['intro'])}</p><ol>{visits}</ol></div>
-<figure>{self.img(app['slug'], case['shot'], 'ja', case['alt'])}<figcaption>{esc(case['caption'])}</figcaption></figure>
+<figure>{self.img(slug, case['shot'], lang, case['alt'])}<figcaption>{esc(case['caption'])}</figcaption></figure>
 </section>"""
         if preview := g.get("preview"):
             heading, detail, shot, alt = preview
-            example = f'<section class="guide-step"><div><h2>{esc(heading)}</h2><p>{esc(detail)}</p></div><figure>{self.img(app["slug"], shot, "ja", alt)}</figure></section>'
+            example = f'<section class="guide-step"><div><h2>{esc(heading)}</h2><p>{esc(detail)}</p></div><figure>{self.img(slug, shot, lang, alt)}</figure></section>'
         checklist = ""
-        if app["slug"] == "kaeroute":
+        if slug == "kaeroute" and lang == "ja":
             checklist = '<p class="resource-callout">持ち物や連絡先だけを紙で確認したい方は、<a href="/kaeroute/ja/checklist/">無料の徒歩帰宅準備チェックリストを開いて印刷</a>できます。</p>'
-        body = f"""<body class="t-{app['theme']}">{self.app_header(app,'ja',None)}
+        dates = f'{labels["published"]} <time datetime="{published}">{ui["date_fmt"](published)}</time>'
+        if published != GUIDE_UPDATED:
+            dates += f' · {labels["updated"]} <time datetime="{GUIDE_UPDATED}">{ui["date_fmt"](GUIDE_UPDATED)}</time>'
+        body = f"""<body class="t-{app['theme']}">{self.app_header(app,lang,alts.get(OTHER[lang]))}
 <main id="main" class="guide wrap"><article>
-<p class="eyebrow">使い方ガイド</p><h1>{esc(g['title'])}</h1>
+<h1>{esc(g['title'])}</h1>
 <p class="lead">{esc(g['lead'])}</p>
-<p class="note">著者：{DEVELOPER}（アプリ開発者） · 公開：<time datetime="2026-11-18">2026年11月18日</time> · 更新：<time datetime="{modified}">2026年11月25日</time></p>
-<p class="note">画面は掲載例です。機能情報：2026年11月6日確認。最新の提供内容・価格はApp Storeをご確認ください。</p>
+<p class="note">{DEVELOPER} ({labels['author']}) · {dates}</p>
+<p class="note">{labels['screens']}</p>
 {checklist}{example}
-<div class="cta">{self.store_button(app,'ja',placement='guide_example')}</div>
-<section><h2>始める前に</h2><p>{esc(g['before'])}</p></section>
+<div class="cta">{self.store_button(app,lang,placement='guide_example')}</div>
+<section><h2>{labels['before']}</h2><p>{esc(g['before'])}</p></section>
 {steps}
-<section class="notice"><h2>できないこと・注意点</h2><p>{esc(g['limits'])}</p></section>
-<section><h2>無料で試す範囲と、その次</h2><p>{esc(g['decision'])}</p>
-<div class="cta">{self.store_button(app,'ja',placement='guide')}<p class="price-note">{app['t']['ja']['price_note']}</p></div></section>
-<p><a href="/{app['slug']}/ja/">機能・料金・よくある質問を詳しく見る</a> · <a href="/{app['slug']}/ja/privacy/">プライバシー</a> · <a href="/{app['slug']}/ja/support/">サポート</a></p>
-</article></main>{self.footer('ja',app['slug'])}</body></html>"""
+<section class="notice"><h2>{ui['limits']}</h2><p>{esc(g['limits'])}</p></section>
+<section><h2>{labels['decision']}</h2><p>{esc(g['decision'])}</p>
+<div class="cta">{self.store_button(app,lang,placement='guide')}<p class="price-note">{app['t'][lang]['price_note']}</p></div></section>
+<p><a href="/{slug}/{lang}/">{labels['overview']}</a> · <a href="/{slug}/{lang}/privacy/">{ui['privacy']}</a> · <a href="/{slug}/{lang}/support/">{ui['support']}</a></p>
+</article></main>{self.footer(lang,slug)}</body></html>"""
         self.write(path, head + body)
-        self.pages.append({"path":path,"alts":{"ja":path},"xdef":path,"lastmod":modified})
+        self.pages.append({"path": path, "alts": alts, "xdef": x_default, "lastmod": GUIDE_UPDATED})
 
     def app_sub(self, app: dict, lang: str, kind: str, alts: dict, xdef: str) -> None:
         u, t, slug = UI[lang], app["t"][lang], app["slug"]
@@ -572,6 +601,10 @@ class Builder:
         head = head.replace('href="/static/img/taskbit/favicon.png"', 'href="/static/img/hub-favicon.png"').replace(
             'href="/static/img/taskbit/apple-touch-icon.png"', 'href="/static/img/hub-favicon.png"')
         o = OTHER[lang]
+        guide_links = "".join(
+            f'<li><a href="/{slug}/{lang}/guides/{GUIDES[slug]["slug"]}/">{esc(g["title"])}</a></li>'
+            for slug, g in GUIDE_CONTENT[lang].items()
+        )
         body = f"""<body class="t-hub">
 <a class="skip" href="#main">{UI[lang]['skip']}</a>
 <header class="site-header"><div class="wrap header-row"><a class="brand" href="{path}"><span>Ryo Morishita</span></a>
@@ -581,7 +614,7 @@ class Builder:
     <h1>{copy[2]}</h1>
     <p class="lead">{copy[3]}</p>
     <ul class="hub-list">{''.join(rows)}</ul>
-    {('<section class="guide-promo"><h2>使い方ガイド</h2><ul>' + ''.join(f'<li><a href="/{slug}/ja/guides/{g["slug"]}/">{esc(g["title"])}</a></li>' for slug,g in GUIDES.items()) + '</ul></section>') if lang == 'ja' else ''}
+    <section class="guide-promo"><h2>{GUIDE_LABELS[lang]['title']}</h2><ul>{guide_links}</ul></section>
     {('<section><h2>定型文の再利用</h2><p><a href="/clipnote/ja/">ClipNote：返信文とAI依頼文のテンプレート例</a></p><p><a href="/kaeroute/ja/checklist/">徒歩帰宅の準備チェックリストを印刷する</a></p></section>') if lang == 'ja' else ''}
     <p class="hub-contact">{UI[lang]['contact']}: <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a></p>
   </div>
@@ -590,7 +623,7 @@ class Builder:
 </html>
 """
         self.write(path, head + "\n" + body)
-        self.pages.append({"path": path, "alts": alts, "xdef": "/", "lastmod": "2026-11-20" if lang == "ja" else max(a["checked"] for a in self.apps.values())})
+        self.pages.append({"path": path, "alts": alts, "xdef": "/", "lastmod": GUIDE_UPDATED})
 
     def not_found(self) -> None:
         head = self.head(lang="ja", title="ページが見つかりません / Page not found", description="お探しのページは見つかりませんでした。",
@@ -642,8 +675,9 @@ class Builder:
         self.hub("ja")
         for s in APP_ORDER:
             self.app_pages(self.apps[s])
-        for slug in GUIDES:
-            self.guide(self.apps[slug])
+        for lang, guides in GUIDE_CONTENT.items():
+            for slug in guides:
+                self.guide(self.apps[slug], lang)
         build_resources(self)
         self.not_found()
         self.sitemap()
