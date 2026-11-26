@@ -139,3 +139,26 @@ GUIDES_EN = {
         "decision": "The free plan includes up to five focus sessions per day, three individual apps, and seven days of history. Pro is a subscription and adds controls for categories and websites.",
     },
 }
+
+GUIDES_ZH_TW = {
+    "kaeroute": {
+        "title": "步行返家路線準備：離線地圖與 A4 PDF 列印",
+        "description": "用 iPhone 的 Kaeroute 預先規劃從公司或學校走路回家，儲存路線、地圖與轉彎資訊。Pro 可匯出 A4 PDF 列印。",
+        "lead": "用 Kaeroute 先規劃一條步行返家路線。儲存完成後，即使沒有網路，也能查看地圖、路線和沿途轉彎資訊。Kaeroute Pro 可匯出包含路線總覽、分段地圖與轉彎清單的 A4 PDF，方便列印備用。",
+        "product_name": "Kaeroute 返家路線・防災準備",
+        "before": "請在平時有網路時準備。例如，平常搭捷運通勤，可以先做一份從公司到住家或家人約定集合地點的步行計畫。下方為臺北車站到大安森林公園的 App 操作示例。",
+        "steps": [
+            ("規劃步行返家路線", "建立計畫，選擇起點與目的地，需要時可加入途經地點。在儲存前先確認距離、預估步行時間及各個轉彎，也可以在平時先走一遍。", "create"),
+            ("儲存離線地圖並確認可以開啟", "在計畫中開啟「離線地圖」，等到畫面顯示「已完成離線儲存」。出發前可開啟飛航模式，重新開啟該計畫，確認地圖、路線和轉彎清單都能查看。", "offline"),
+            ("使用 Pro 匯出及列印 A4 PDF", "在計畫中選擇「製作PDF（Pro）」。預覽總覽圖、分段地圖與轉彎清單後，可分享、儲存到 iPhone 的「檔案」，或以支援 AirPrint 的印表機列印。圖中的轉彎編號可對照清單。", "pdf"),
+        ],
+        "shot_alts": {
+            "create": "以臺北車站及大安森林公園為起點與目的地的路線規劃畫面",
+            "offline": "離線地圖畫面顯示已完成離線儲存",
+            "pdf": "A4 返家計畫 PDF 預覽，顯示路線總覽與步行資訊",
+        },
+        "limits": "地點搜尋、建立新路線和下載地圖需要網路。圖資依支援區域而定，離線只能查看已完成儲存的內容。App 不提供災後即時路況，請依現場情況及政府、公司或學校的指示決定是否移動。",
+        "decision": "免費版可建立一份返家計畫，保存主要步行路線與所需地圖。匯出 PDF、列印、多份計畫及儲存候選備用路線需要另購 Kaeroute Pro。Pro 為一次性 App 內購買。",
+        "price_note": "適用於 iOS 17.0 或更新版本。價格請以台灣 App Store 為準。",
+    },
+}

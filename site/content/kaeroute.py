@@ -19,10 +19,10 @@ APP = {
     "checked": "2026-11-06",
     "langs": ("ja", "en"),
     "primary_lang": "ja",
-    "shot_langs": ("ja",),
+    "shot_langs": ("ja", "zh-TW"),
     "ui_languages": ["ja", "zh-Hant"],
     "schema_category": "UtilitiesApplication",
-    "store_url": {"ja": JP, "en": JP},
+    "store_url": {"ja": JP, "en": JP, "zh-TW": TW},
     "offers": {
         "ja": [("カエルート", "0", "JPY", "1件の帰宅計画と保存済み情報の参照は無料"),
                ("カエルート Pro", "980", "JPY", "買い切りのApp内課金（サブスクリプションではありません）")],

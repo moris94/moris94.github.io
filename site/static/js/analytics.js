@@ -19,7 +19,7 @@
   let enabled = false;
   let loaded = false;
   let viewed = false;
-  const lang = document.documentElement.lang === 'ja' ? 'ja' : 'en';
+  const lang = document.documentElement.lang || 'en';
   const cleanPage = () => location.origin + location.pathname;
   const sourceHost = () => { try { return new URL(document.referrer).hostname; } catch { return ''; } };
   function remember(value) { try { localStorage.setItem(key, value); } catch { /* Optional persistence. */ } }

@@ -13,7 +13,7 @@ import json
 import pathlib
 import shutil
 import struct
-from guides import GUIDES, GUIDES_EN
+from guides import GUIDES, GUIDES_EN, GUIDES_ZH_TW
 from growth_pages import build_resources
 
 SITE = pathlib.Path(__file__).resolve().parent
@@ -22,7 +22,7 @@ APP_ORDER = ("taskbit", "geoalbum", "studyfocus", "kaeroute")
 DEVELOPER = "Ryo Morishita"
 SUPPORT_EMAIL = "shunmemo.support@gmail.com"
 GUIDE_UPDATED = "2026-11-26"
-GUIDE_CONTENT = {"ja": GUIDES, "en": GUIDES_EN}
+GUIDE_CONTENT = {"ja": GUIDES, "en": GUIDES_EN, "zh-TW": GUIDES_ZH_TW}
 GUIDE_LABELS = {
     "ja": {
         "title": "使い方ガイド", "author": "アプリ開発者",
@@ -37,6 +37,12 @@ GUIDE_LABELS = {
         "screens": "Screenshots illustrate the steps. Check the App Store for current availability and pricing.",
         "caption": "App screenshot", "before": "Before you start", "decision": "What you can try for free",
         "overview": "See features, pricing, and frequently asked questions",
+    },
+    "zh-TW": {
+        "author": "App 開發者", "published": "發布", "updated": "更新",
+        "screens": "畫面取自繁體中文版 App 的操作示例。",
+        "caption": "Kaeroute 操作畫面", "before": "開始前", "decision": "免費版與 Pro",
+        "overview": "查看 App 介紹（日文）",
     },
 }
 
@@ -90,6 +96,13 @@ UI = {
         "back_to_app": "Back to the app overview",
         "locale": "en_US",
         "date_fmt": lambda d: (lambda x: f"{x:%B} {x.day}, {x.year}")(__import__("datetime").date.fromisoformat(d)),
+    },
+    "zh-TW": {
+        "skip": "跳至主要內容", "limits": "使用限制",
+        "support": "支援（日文）", "privacy": "隱私權（日文）",
+        "store": "在台灣 App Store 下載",
+        "other_apps": "Ryo Morishita 的 App", "developer": "開發者",
+        "locale": "zh_TW", "date_fmt": lambda d: f"{int(d[:4])}年{int(d[5:7])}月{int(d[8:10])}日",
     },
 }
 OTHER = {"ja": "en", "en": "ja"}
@@ -153,7 +166,7 @@ class Builder:
             target = target / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
         if "</body>" in content:
-            lang = "ja" if '<html lang="ja">' in content else "en"
+            lang = next((locale for locale in UI if f'<html lang="{locale}">' in content), "en")
             content = content.replace("</body>", self.analytics_ui(lang) + "\n</body>")
         target.write_text(content, encoding="utf-8")
 
@@ -162,14 +175,21 @@ class Builder:
             title = "サイトのアクセス解析"
             text = "許可すると、Google Analyticsでページ閲覧とApp Storeへのクリックを計測します。拒否してもサイトとダウンロードは利用できます。設定はいつでも変更できます。"
             yes, no, settings = "許可する", "拒否する", "アクセス解析の設定"
+            privacy = "Googleのプライバシーポリシー"
+        elif lang == "zh-TW":
+            title = "網站流量分析"
+            text = "經你同意後，本網站會使用 Google Analytics 統計網頁瀏覽及 App Store 連結的點擊。拒絕後仍可使用網站及下載 App。你可以隨時變更設定。"
+            yes, no, settings = "允許", "拒絕", "流量分析設定"
+            privacy = "Google 隱私權政策"
         else:
             title = "Website analytics"
             text = "With your permission, Google Analytics measures page views and clicks to the App Store. You can decline and still use the site and download apps. You can change your choice anytime."
             yes, no, settings = "Allow", "Decline", "Analytics settings"
+            privacy = "Google Privacy Policy"
         return f'''<div class="analytics-settings"><button type="button" data-analytics-settings>{settings}</button></div>
 <aside class="analytics-panel" data-analytics-panel aria-labelledby="analytics-title" hidden>
   <h2 id="analytics-title">{title}</h2><p>{text}</p>
-  <p><a href="https://policies.google.com/privacy">{"Googleのプライバシーポリシー" if lang == "ja" else "Google Privacy Policy"}</a></p>
+  <p><a href="https://policies.google.com/privacy">{privacy}</a></p>
   <div><button type="button" data-analytics-choice="deny">{no}</button><button type="button" data-analytics-choice="allow">{yes}</button></div>
 </aside>'''
 
@@ -211,8 +231,9 @@ class Builder:
             f'<meta property="og:image:alt" content="{esc(og_alt)}">',
             f'<meta property="og:locale" content="{u["locale"]}">',
         ]
-        if alternates and OTHER[lang] in alternates:
-            parts.append(f'<meta property="og:locale:alternate" content="{UI[OTHER[lang]]["locale"]}">')
+        for locale in alternates or {}:
+            if locale != lang:
+                parts.append(f'<meta property="og:locale:alternate" content="{UI[locale]["locale"]}">')
         parts += [
             '<meta property="og:site_name" content="Ryo Morishita Apps">',
             '<meta name="twitter:card" content="summary_large_image">',
@@ -264,14 +285,20 @@ class Builder:
         extra = ""
         if current:
             a = self.apps[current]
-            extra = (f'<p class="foot-links"><a href="/{current}/{lang}/privacy/">{u["privacy"]}</a>'
-                     f'<a href="/{current}/{lang}/support/">{u["support"]}</a></p>')
+            app_locale = lang if lang in a["langs"] else a["primary_lang"]
+            extra = (f'<p class="foot-links"><a href="/{current}/{app_locale}/privacy/">{u["privacy"]}</a>'
+                     f'<a href="/{current}/{app_locale}/support/">{u["support"]}</a></p>')
+        footer_note = {
+            "ja": f"{DEVELOPER}。掲載しているのはApp Storeで公開中の機能です。",
+            "en": f"{DEVELOPER}. This site describes features available in the current App Store version.",
+            "zh-TW": f"{DEVELOPER}。本網站介紹 App Store 版本提供的功能。",
+        }[lang]
         return f"""<footer class="site-footer">
   <div class="wrap">
     {extra}
     <p class="foot-title"><a href="{hub}">{u['other_apps']}</a></p>
     <ul class="foot-apps">{''.join(items)}</ul>
-    <p class="foot-note">{u['developer']}: {DEVELOPER}{'。' if lang == 'ja' else '. '}{'掲載しているのはApp Storeで公開中の機能です。' if lang == 'ja' else 'This site describes features available in the current App Store version.'}</p>
+    <p class="foot-note">{u['developer']}: {footer_note}</p>
   </div>
 </footer>"""
 
@@ -284,7 +311,7 @@ class Builder:
         return [
             {"@type": "Person", "@id": self.abs("/#developer"), "name": DEVELOPER, "url": self.abs("/")},
             {"@type": "WebSite", "@id": self.abs("/#website"), "url": self.abs("/"), "name": "Ryo Morishita Apps",
-             "publisher": {"@id": self.abs("/#developer")}, "inLanguage": ["en", "ja"]},
+             "publisher": {"@id": self.abs("/#developer")}, "inLanguage": ["en", "ja", "zh-TW"]},
         ]
 
     def app_jsonld(self, app: dict, lang: str, path: str) -> dict:
@@ -345,7 +372,8 @@ class Builder:
         slug = app["slug"]
         return self.head(lang=lang, title=title, description=description, path=path, alternates=alts,
                          x_default=xdef, icon_dir=f"/static/img/{slug}", og_image=f"/static/img/{slug}/og.jpg",
-                         og_alt=app["t"][lang]["og_alt"], jsonld=jsonld, extra=extra, theme_color=app["theme_color"])
+                         og_alt=app["t"].get(lang, app["t"][app["primary_lang"]])["og_alt"],
+                         jsonld=jsonld, extra=extra, theme_color=app["theme_color"])
 
     def app_index(self, app: dict, lang: str, alts: dict, xdef: str) -> None:
         u, t, slug = UI[lang], app["t"][lang], app["slug"]
@@ -449,7 +477,14 @@ class Builder:
         if slug in GUIDE_CONTENT[lang]:
             g = GUIDE_CONTENT[lang][slug]
             guide_path = f'/{slug}/{lang}/guides/{GUIDES[slug]["slug"]}/'
-            guide_link = f'<section class="wrap guide-promo"><h2>{GUIDE_LABELS[lang]["title"]}</h2><p><a href="{guide_path}">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p></section>'
+            taiwan_link = ""
+            if slug in GUIDES_ZH_TW:
+                taiwan_path = f'/{slug}/zh-TW/guides/{GUIDES[slug]["slug"]}/'
+                taiwan_title = esc(GUIDES_ZH_TW[slug]["title"])
+                taiwan_link = f'<p><a href="{taiwan_path}" lang="zh-TW" hreflang="zh-TW">{taiwan_title}</a></p>'
+            guide_link = (f'<section class="wrap guide-promo"><h2>{GUIDE_LABELS[lang]["title"]}</h2>'
+                          f'<p><a href="{guide_path}">{esc(g["title"])}</a></p><p>{esc(g["description"])}</p>'
+                          f'{taiwan_link}</section>')
             body = body.replace('<section class="facts-section"', guide_link + '<section class="facts-section"', 1)
         self.write(path, head + "\n" + body)
         lastmod = GUIDE_UPDATED if slug in GUIDE_CONTENT[lang] else t.get("modified", app["checked"])
@@ -461,18 +496,23 @@ class Builder:
         alts = {locale: f"/{slug}/{locale}/guides/{GUIDES[slug]['slug']}/"
                 for locale in GUIDE_CONTENT if slug in GUIDE_CONTENT[locale]}
         path, x_default = alts[lang], alts[app["primary_lang"]]
+        app_locale = lang if lang in app["langs"] else app["primary_lang"]
+        app_path = f"/{slug}/{app_locale}/"
+        app_text = app["t"][app_locale]
+        product_name = g.get("product_name", app_text["name"])
         published = "2026-11-18" if lang == "ja" else GUIDE_UPDATED
         graph = {"@context":"https://schema.org", "@graph":[*self.graph_common(), {
             "@type":"Article", "@id":self.abs(path), "url":self.abs(path),
             "headline":g["title"], "description":g["description"], "inLanguage":lang,
             "datePublished":published, "dateModified":GUIDE_UPDATED,
             "author":{"@type":"Person","name":DEVELOPER},
-            "about":{"@id":self.abs(f"/{slug}/{lang}/#app")}}]}
-        head = self.common_head(app, lang, g["title"] + " | " + app["t"][lang]["name"],
+            "about":{"@id":self.abs(app_path + "#app")}}]}
+        head = self.common_head(app, lang, g["title"] + " | " + product_name,
                                 g["description"], path, alts, x_default, graph)
+        shot_alts = g.get("shot_alts", {})
         steps = "".join(
             f'<section class="guide-step"><div><h2>{i}. {esc(h)}</h2><p>{esc(body)}</p></div>'
-            f'<figure>{self.img(slug, shot, lang, h)}<figcaption>{labels["caption"]}</figcaption></figure></section>'
+            f'<figure>{self.img(slug, shot, lang, shot_alts.get(shot, h))}<figcaption>{labels["caption"]}</figcaption></figure></section>'
             for i, (h, body, shot) in enumerate(g["steps"], 1)
         )
         example = ""
@@ -495,10 +535,23 @@ class Builder:
         dates = f'{labels["published"]} <time datetime="{published}">{ui["date_fmt"](published)}</time>'
         if published != GUIDE_UPDATED:
             dates += f' · {labels["updated"]} <time datetime="{GUIDE_UPDATED}">{ui["date_fmt"](GUIDE_UPDATED)}</time>'
-        body = f"""<body class="t-{app['theme']}">{self.app_header(app,lang,alts.get(OTHER[lang]))}
+        if lang == "zh-TW":
+            header = f'''<a class="skip" href="#main">{ui['skip']}</a>
+<header class="site-header"><div class="wrap header-row">
+<a class="brand" href="{path}" aria-current="page"><img src="/static/img/{slug}/icon-96.webp" width="36" height="36" alt=""><span>{esc(product_name)}</span></a>
+</div></header>'''
+            language_links = (f'<p><a href="{alts["ja"]}" lang="ja" hreflang="ja">日本語</a> · '
+                              f'<a href="{alts["en"]}" lang="en" hreflang="en">English</a></p>')
+        else:
+            header = self.app_header(app, lang, alts.get(OTHER[lang]))
+            language_links = (f'<p><a href="{alts["zh-TW"]}" lang="zh-TW" hreflang="zh-TW">繁體中文（台灣）</a></p>'
+                              if "zh-TW" in alts else "")
+        price_note = g.get("price_note", app_text["price_note"])
+        body = f"""<body class="t-{app['theme']}">{header}
 <main id="main" class="guide wrap"><article>
 <h1>{esc(g['title'])}</h1>
 <p class="lead">{esc(g['lead'])}</p>
+{language_links}
 <p class="note">{DEVELOPER} ({labels['author']}) · {dates}</p>
 <p class="note">{labels['screens']}</p>
 {checklist}{example}
@@ -507,8 +560,8 @@ class Builder:
 {steps}
 <section class="notice"><h2>{ui['limits']}</h2><p>{esc(g['limits'])}</p></section>
 <section><h2>{labels['decision']}</h2><p>{esc(g['decision'])}</p>
-<div class="cta">{self.store_button(app,lang,placement='guide')}<p class="price-note">{app['t'][lang]['price_note']}</p></div></section>
-<p><a href="/{slug}/{lang}/">{labels['overview']}</a> · <a href="/{slug}/{lang}/privacy/">{ui['privacy']}</a> · <a href="/{slug}/{lang}/support/">{ui['support']}</a></p>
+<div class="cta">{self.store_button(app,lang,placement='guide')}<p class="price-note">{price_note}</p></div></section>
+<p><a href="{app_path}">{labels['overview']}</a> · <a href="{app_path}privacy/">{ui['privacy']}</a> · <a href="{app_path}support/">{ui['support']}</a></p>
 </article></main>{self.footer(lang,slug)}</body></html>"""
         self.write(path, head + body)
         self.pages.append({"path": path, "alts": alts, "xdef": x_default, "lastmod": GUIDE_UPDATED})

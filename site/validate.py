@@ -119,7 +119,7 @@ def main() -> int:
     for f, p in pages.items():
         name = f.relative_to(dist).as_posix()
         noindex = "noindex" in p.meta.get("robots", "")
-        if p.lang not in ("ja", "en"):
+        if p.lang not in ("ja", "en", "zh-TW"):
             err(f"{name}: html lang missing or unexpected ({p.lang})")
         if not p.title.strip():
             err(f"{name}: empty <title>")
