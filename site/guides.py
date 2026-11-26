@@ -87,6 +87,17 @@ GUIDES_EN = {
             "alt": "GeoAlbum asks for confirmation before adding the selected photos to an album",
             "caption": "The confirmation screen is an app screenshot.",
         },
+        "evidence": {
+            "title": "What happens when you run the same location rule again?",
+            "intro": "In a developer test using sample photo records, the first scan offered 3 photos. The second scan checked 7 records and offered 2 new matches. It left out 3 photos already in the album, 1 without a recorded location, and 1 outside the radius. This test ran the matching logic with sample records. The screens show how to review the results in the app.",
+            "columns": ("Photo", "Result of the location scan"),
+            "rows": [
+                ("Inside the radius and new to the album", "Appears in review. Select it to add it to your existing album."),
+                ("Inside the radius and already in the album", "Counted as already added and left out of the list of new candidates."),
+                ("No recorded location", "Counted separately and left out of the place matches."),
+                ("Outside the saved radius", "Left out of the place matches."),
+            ],
+        },
         "before": "Use the map in Apple Photos to find photos from a one-off visit. A saved GeoAlbum rule is useful when you return to the same place and want to reuse the same destination album.",
         "steps": [
             ("Save a location and radius", "Choose a place from a map, search for it, or use a photo with location information. Set a radius that covers the area you photographed.", "place"),
@@ -111,10 +122,15 @@ GUIDES_EN = {
         "decision": "The free app covers one plan and its saved main route and maps. Pro adds PDF export, multiple plans, and alternative routes.",
     },
     "taskbit": {
-        "title": "Earn Furniture by Completing To-Dos on iPhone",
+        "title": "Earn Coins for Completing To-Dos and Furnish a Room on iPhone",
         "description": "Use TaskBit to earn coins for completing tasks and spend them on furniture and decorations for your companion's room.",
         "lead": "TaskBit is a gamified iPhone to-do list. Completing a task earns coins, which you can spend on furniture and decorations for your companion's room. You can rearrange the room as you collect more items.",
         "preview": ("Give today's task a small reward", "Add a task such as packing tomorrow's bag. When you finish, check it off. Use the coins you collect to choose an item for the room.", "room", "A companion in a furnished room in TaskBit"),
+        "evidence": {
+            "title": "A task, a reward, and a piece of furniture",
+            "intro": "Add a task, mark it done to earn coins, then choose furniture for your companion’s room. Put the item in one of its available spots. Completing tasks earns coins, so there is no need to run a focus timer to earn them.",
+            "video": ("/static/files/taskbit-task-to-furniture.mp4", "A silent 12-second walkthrough assembled from TaskBit screens showing task creation, the task list, the room, and furniture placement."),
+        },
         "before": "iPhone Reminders can handle checklists and timed reminders. Use TaskBit when a visible reward for completing tasks would make that daily routine more appealing.",
         "steps": [
             ("Add one task for today", "Enter a short title and date. You can also set a time or repeat schedule.", "home"),
@@ -127,8 +143,19 @@ GUIDES_EN = {
     "studyfocus": {
         "title": "Block Social Apps While Studying and Reblock Them After Breaks",
         "description": "Set up the Study Focus iPhone timer to block selected social apps while studying, allow them on breaks, and reblock them when the break ends.",
-        "lead": "Study Focus is an iPhone study timer that blocks the social apps you select while you study and unblocks them on breaks. It automatically blocks those apps again when the break ends. Start the next focus timer yourself.",
+        "lead": "Study Focus – Social Blocker is an iPhone study timer that blocks the social apps you select while you study and unblocks them on breaks. It automatically blocks those apps again when the break ends. Start the next focus timer yourself.",
         "preview": ("Study for 25 minutes and take a five-minute break", "Choose which apps to block and set your study and break lengths. Selected apps are blocked during the study period, available on the break, and blocked again when it ends.", "break", "The Study Focus app showing the time left in a break"),
+        "evidence": {
+            "title": "What happens to the same app at each timer stage?",
+            "intro": "For a 25-minute study session and a five-minute break, choose one social app after granting Screen Time access. Open that same app during each stage to check the result. The guide images show example screens from the app.",
+            "columns": ("Stage", "Expected result with Study Focus – Social Blocker"),
+            "rows": [
+                ("Study timer is running", "Opening the selected social app shows a Screen Time block."),
+                ("Five-minute break is running", "The selected app becomes available automatically."),
+                ("The break ends", "The selected app is blocked again. Tap Start Next Focus to begin another timer."),
+                ("Built-in iPhone Focus", "Use Focus to change which notifications come through. Study Focus ties access to selected apps to the study and break timer."),
+            ],
+        },
         "before": "Allow Study Focus to use Screen Time before picking apps to block. iOS Focus can silence notifications when that is all you need.",
         "steps": [
             ("Set your timers and select apps", "Choose your focus and break lengths, then select the social apps you want to restrict. The free plan lets you choose up to three individual apps.", "settings"),
@@ -152,6 +179,11 @@ GUIDES_ZH_TW = {
             ("儲存離線地圖並確認可以開啟", "在計畫中點選「儲存地圖」，再選擇「準備或更新離線地圖」。請等到畫面顯示「已完成離線儲存」。出發前可開啟飛航模式，重新開啟該計畫，確認地圖、路線和轉彎清單都能查看。", "offline"),
             ("使用 Pro 匯出及列印 A4 PDF", "在計畫中選擇「製作PDF（Pro）」。預覽總覽圖、分段地圖與轉彎清單後，可分享、儲存到 iPhone 的「檔案」，或以支援 AirPrint 的印表機列印。圖中的轉彎編號可對照清單。", "pdf"),
         ],
+        "evidence": {
+            "title": "下載臺北步行路線的 A4 PDF 範例",
+            "intro": "這是 Kaeroute Pro 匯出的六頁範例，路線從臺北車站周邊到大安森林公園。PDF 含一頁路線總覽、三頁分段地圖和兩頁轉彎清單。開發者在 iOS 26.2 模擬器重新啟動 App 並阻擋 HTTP 請求後，確認已儲存的地圖可用，並產出這份 PDF。你可以在自己的 iPhone 開啟飛航模式複查儲存結果。",
+            "download": ("/static/files/kaeroute-taipei-route-example.pdf", "下載臺北返家路線範例（A4 PDF，2.3 MB）"),
+        },
         "shot_alts": {
             "create": "以臺北車站及大安森林公園為起點與目的地的路線規劃畫面",
             "offline": "離線地圖畫面顯示已完成離線儲存",

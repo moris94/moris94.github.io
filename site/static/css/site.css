@@ -329,6 +329,11 @@ main > section + section { border-top: 1px solid var(--line); }
 .guide-step figure { margin: 0; }
 .guide-step img { width: 100%; height: auto; }
 .guide figcaption { font-size: .85rem; margin-top: .5rem; }
+.guide-table { width: 100%; border-collapse: collapse; text-align: start; font-size: 0.95rem; }
+.guide-table th, .guide-table td { text-align: start; vertical-align: top; padding: 0.6rem; border-bottom: 1px solid var(--line); }
+.guide-table thead { background: var(--surface); }
+.guide-video { margin: 1rem 0 0; }
+.guide-video video { display: block; width: min(100%, 250px); height: auto; background: var(--surface); }
 .guide-promo { margin-block: 2.5rem; padding-block: 1.5rem; border-top: 1px solid currentColor; }
 @media (max-width: 620px) { .guide-step { grid-template-columns: minmax(0, 1fr); } .guide-step figure { max-width: 250px; margin-inline: auto; } }
 

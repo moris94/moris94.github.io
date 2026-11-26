@@ -490,6 +490,23 @@ class Builder:
         lastmod = GUIDE_UPDATED if slug in GUIDE_CONTENT[lang] else t.get("modified", app["checked"])
         self.pages.append({"path": path, "alts": alts, "xdef": xdef, "lastmod": lastmod})
 
+    def guide_evidence(self, evidence: dict) -> str:
+        parts = [f'<section><h2>{esc(evidence["title"])}</h2><p>{esc(evidence["intro"])}</p>']
+        if columns := evidence.get("columns"):
+            headings = "".join(f'<th scope="col">{esc(label)}</th>' for label in columns)
+            rows = "".join(f'<tr><th scope="row">{esc(label)}</th><td>{esc(result)}</td></tr>'
+                           for label, result in evidence["rows"])
+            parts.append(f'<table class="guide-table"><thead><tr>{headings}</tr></thead><tbody>{rows}</tbody></table>')
+        if download := evidence.get("download"):
+            path, label = download
+            parts.append(f'<p><a href="{esc(path)}" download>{esc(label)}</a></p>')
+        if video := evidence.get("video"):
+            path, caption = video
+            parts.append(f'<figure class="guide-video"><video controls playsinline preload="none" width="400" height="868" aria-describedby="guide-video-caption">'
+                         f'<source src="{esc(path)}" type="video/mp4"></video>'
+                         f'<figcaption id="guide-video-caption">{esc(caption)} <a href="{esc(path)}">Download the video</a>.</figcaption></figure>')
+        return "".join(parts) + "</section>"
+
     def guide(self, app: dict, lang: str) -> None:
         slug = app["slug"]
         g, labels, ui = GUIDE_CONTENT[lang][slug], GUIDE_LABELS[lang], UI[lang]
@@ -558,6 +575,7 @@ class Builder:
 <div class="cta">{self.store_button(app,lang,placement='guide_example')}</div>
 <section><h2>{labels['before']}</h2><p>{esc(g['before'])}</p></section>
 {steps}
+{self.guide_evidence(g['evidence']) if 'evidence' in g else ''}
 <section class="notice"><h2>{ui['limits']}</h2><p>{esc(g['limits'])}</p></section>
 <section><h2>{labels['decision']}</h2><p>{esc(g['decision'])}</p>
 <div class="cta">{self.store_button(app,lang,placement='guide')}<p class="price-note">{price_note}</p></div></section>
